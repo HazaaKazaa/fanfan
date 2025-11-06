@@ -65,6 +65,26 @@ from dotenv import load_dotenv
 from urllib.parse import quote
 
 # =====================================================
+# === KEEP ALIVE SERVER (for Render / Ping Services) ===
+# =====================================================
+from flask import Flask
+import threading
+
+flask_app = Flask(__name__)
+
+@flask_app.route('/')
+def home():
+    return "✅ Bot is running!"
+
+@flask_app.route('/healthz')
+def healthz():
+    return "OK", 200
+
+def run_flask():
+    flask_app.run(host="0.0.0.0", port=8080)
+
+
+# =====================================================
 # === SUPABASE CONNECTIONS ============================
 # =====================================================
 
@@ -7598,10 +7618,18 @@ def main():
 
 
     
-    
-    # Start the Bot
+def main():
+    # Log and start Flask keep-alive server
     logger.info("🚀 Starting Fan Fan Bets AI Pro bot...")
-    application.run_polling()
+
+    # Start Flask keep-alive server in a background thread
+    threading.Thread(target=run_flask).start()
+
+    # Then start your Telegram bot as usual
+    import asyncio
+    asyncio.run(application.run_polling())
 
 if __name__ == "__main__":
     main()
+
+    
