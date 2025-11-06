@@ -83,6 +83,15 @@ def healthz():
 def run_flask():
     flask_app.run(host="0.0.0.0", port=8080)
 
+# =====================================================
+# === TELEGRAM BOT SETUP =============================
+# =====================================================
+import os
+from telegram.ext import ApplicationBuilder
+
+BOT_TOKEN = os.environ.get("BOT_TOKEN")  # Make sure this env var is set in Render
+application = ApplicationBuilder().token(BOT_TOKEN).build()
+
 
 # =====================================================
 # === SUPABASE CONNECTIONS ============================
@@ -7623,7 +7632,8 @@ def main():
     logger.info("🚀 Starting Fan Fan Bets AI Pro bot...")
 
     # Start Flask keep-alive server in a background thread
-    threading.Thread(target=run_flask).start()
+    threading.Thread(target=run_flask, daemon=True).start()
+
 
     # Then start your Telegram bot as usual
     import asyncio
