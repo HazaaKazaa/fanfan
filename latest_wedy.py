@@ -773,8 +773,21 @@ class UserPaymentManager:
 # Initialize globally
 payment_manager = UserPaymentManager()
 
+
+
 # ==================== FLASK WEBHOOK SERVER ====================
 app = Flask(__name__)
+
+# ----------------------------
+# Telegram webhook route 
+# ----------------------------
+@app.route("/webhook/telegram", methods=["POST"])
+def telegram_webhook():
+    update = Update.de_json(request.get_json(force=True), bot_app.bot)
+    bot_app.update_queue.put(update)
+    return "ok"
+
+
 
 @app.route('/webhook/intasend', methods=['POST'])
 def intasend_webhook():
@@ -881,6 +894,19 @@ def intasend_webhook():
     else:
         print(f"⏳ Webhook: Payment {state} for invoice {invoice_id}")
         return jsonify({"status": "pending", "state": state}), 200
+
+# ----------------------------
+# Set Telegram webhook
+# ----------------------------
+@app.before_first_request
+def set_telegram_webhook():
+    url = f"{APP_URL}/webhook/telegram"
+    asyncio.get_event_loop().run_until_complete(bot_app.bot.set_webhook(url))
+    print(f"✅ Telegram Webhook set to {url}")
+
+
+
+
 # ==================== API CLIENTS ====================
 class NewsAPIClient:
     def __init__(self, api_key: str):
@@ -7628,17 +7654,10 @@ def main():
 
     
 def main():
-    logger.info("🚀 Starting Fan Fan Bets AI Pro bot...")
+    logger.info("🚀 Starting Fan Fan Bets AI Pro bot (webhook mode)...")
 
-    # Start Flask keep-alive server in a background thread
-    threading.Thread(target=run_flask, daemon=True).start()
-
-    # Start bot polling safely (blocking call, only one instance)
-    try:
-        logger.info("🤖 Running bot polling...")
-        application.run_polling()
-    except Exception as e:
-        logger.error(f"Bot polling stopped: {e}")
+    # Just run Flask; Telegram updates handled via webhook
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
 
 if __name__ == "__main__":
     main()
