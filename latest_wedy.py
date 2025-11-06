@@ -89,7 +89,7 @@ def run_flask():
 import os
 from telegram.ext import ApplicationBuilder
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN")  # Make sure this env var is set in Render
+BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")  # Make sure this env var is set in Render
 application = ApplicationBuilder().token(BOT_TOKEN).build()
 
 
