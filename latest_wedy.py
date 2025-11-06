@@ -7628,18 +7628,17 @@ def main():
 
     
 def main():
-    # Log and start Flask keep-alive server
     logger.info("🚀 Starting Fan Fan Bets AI Pro bot...")
 
     # Start Flask keep-alive server in a background thread
     threading.Thread(target=run_flask, daemon=True).start()
 
-
-    # Then start your Telegram bot as usual
-    import asyncio
-    asyncio.run(application.run_polling())
+    # Start bot polling safely (blocking call, only one instance)
+    try:
+        logger.info("🤖 Running bot polling...")
+        application.run_polling()
+    except Exception as e:
+        logger.error(f"Bot polling stopped: {e}")
 
 if __name__ == "__main__":
     main()
-
-    
